@@ -1,10 +1,12 @@
-var info = {};
+var recordsUS = {};
+var recordsCC = {};
 
 var beforePacer = 0;
 var afterPacer = 0;
 
 window.onload = function () {
 	document.getElementById("submit").onclick = check;
+	document.getElementById("download").onclick = downloadCSV;
 }
 
 function check() {
@@ -13,7 +15,10 @@ function check() {
 	if (file) {
 		document.getElementById("initial").style.display = "none";
 
+		//json -> correctly formatted data
 		processData(JSON.parse(file));
+
+		//recordsUS has data now, good to use!
 		calculate();
 		stylePage();
 
@@ -26,35 +31,29 @@ function check() {
 function processData(file) {
 	for (var i = 0; i < file.length; i++) {
 		var record = file[i];
-		var cost = record.Cost;
-		cost = parseFloat(cost.substring(1));
-		var court = record.Court;
 		var desc = record.Description;
-		var search = record.Search;
+		//only include description with "IMAGE"/"PDF DOCUMENT"/"TRANSCRIPT"
+		if (~desc.indexOf("IMAGE") || ~desc.indexOf("PDF DOCUMENT") || ~desc.indexOf("TRANSCRIPT")) {
+			var cost = parseFloat(record.Cost.substring(1));
+			var court = record.Court;
+			var search = record.Search;
+			var name = court + search + desc;	
 
-		var name = court + search + desc;
-		//if the record does not exist in the structure, put it there with count=0
-		if (!info[name]) {
-			info[name] = {
-				"cost" : cost,
-				"count" : 0
-			}
+			fillUS(name, cost);	
+			fillCC(record, name, cost);
+
 		}
-		info[name].count ++;
 	}
+	console.log(recordsCC);
 }
 
 function calculate() {
-	for (var key in info) {
-		var record = info[key];
-		// console.log(record.cost);
-		// console.log(record.count);
+	for (var key in recordsUS) {
+		var record = recordsUS[key];
 		
 		beforePacer += (record.cost * record.count);	
 		afterPacer += record.cost;
 	}
-	console.log("before", beforePacer);
-	console.log("after", afterPacer);
 }
 
 function stylePage() {
@@ -64,3 +63,64 @@ function stylePage() {
 	var diff = Math.round((beforePacer - afterPacer) * 1000) / 1000;
 	saveArea.innerHTML = diff;
 }
+
+function downloadCSV() {
+	var csvArr = new Array();
+	csvArr.push(["Unique Signature", "Number of downloads", "Price", "Total", "Savings"]);
+	for (var key in recordsUS) {
+		var record = recordsUS[key];
+		var tot = record.count * record.cost;
+		csvArr.push([key, record.count, "$" + record.cost, "$" + tot, "$" + (tot - record.cost)]);
+	}
+	console.log(csvArr);
+
+	var csvContent = "data:text/csv;charset=utf-8,";
+	csvArr.forEach(function(infoArray, index){
+	   dataString = infoArray.join(",");
+	   csvContent += index < csvArr.length ? dataString + "\n" : dataString;
+	});
+	var encodedUri = encodeURI(csvContent);
+	window.open(encodedUri);
+}
+
+function fillUS(name, cost) {
+	if (!recordsUS[name]) { 
+		recordsUS[name] = {
+			"cost" : cost,
+			"count" : 0
+		}
+	}
+	recordsUS[name].count ++;
+}
+
+function fillCC(record, name, cost) {
+	var clientCode = record["Client Code"];
+	/*
+	{									Tot 			Savings
+		CC 	=> 	[ US => {dnl, cost, (dnl * cost), (dnl * cost) - cost} },
+								...
+				  US => {dnl, cost, (dnl * cost), (dnl * cost) - cost} }
+				],
+		...,
+		CC 	=> 	[ US => {dnl, cost, (dnl * cost), (dnl * cost) - cost} },
+								...
+				  US => {dnl, cost, (dnl * cost), (dnl * cost) - cost} }
+				]
+	}
+	 */
+	if (!recordsCC[clientCode]) {
+		recordsCC[clientCode] = new Array();
+	}
+	if (!recordsCC[clientCode][name]) {
+		recordsCC[clientCode][name] = {
+				"count" : 0,
+				"cost" : cost,
+				"tot" : 0,
+				"save" : 0
+		};	
+	}
+	recordsCC[clientCode][name].count++;
+	recordsCC[clientCode][name].tot = recordsCC[clientCode][name].count * cost;
+	recordsCC[clientCode][name].save = recordsCC[clientCode][name].tot - cost;
+}
+
