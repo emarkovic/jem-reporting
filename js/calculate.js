@@ -5,8 +5,28 @@ var beforePacer = 0;
 var afterPacer = 0;
 
 window.onload = function () {
-	document.getElementById("submit").onclick = check;
 	document.getElementById("download").onclick = downloadCSV;
+	document.getElementById("submit").onclick = check;
+	
+}
+
+function downloadCSV() {
+	var csvArr = new Array();
+	csvArr.push(["", "Totals ->", "$" + afterPacer, "$" + beforePacer, "$" + (beforePacer - afterPacer)]);
+	csvArr.push(["Unique Signature", "Number of downloads", "Price", "Total", "Savings"]);
+	for (var key in recordsUS) {
+		var record = recordsUS[key];
+		var tot = record.count * record.cost;
+		csvArr.push([key, record.count, "$" + record.cost, "$" + tot, "$" + (tot - record.cost)]);
+	}
+
+	var csvContent = "data:text/csv;charset=utf-8,";
+	csvArr.forEach(function(infoArray, index){
+	   dataString = infoArray.join(",");
+	   csvContent += index < csvArr.length ? dataString + "\n" : dataString;
+	});
+	var encodedUri = encodeURI(csvContent);
+	window.open(encodedUri);
 }
 
 function check() {
@@ -18,7 +38,7 @@ function check() {
 		//json -> correctly formatted data
 		processData(JSON.parse(file));
 		//recordsUS has data now, good to use!
-		calculate();
+		calculateUS();
 		stylePage();
 
 		document.getElementById("done").style.display = "block";
@@ -47,7 +67,7 @@ function processData(file) {
 	// console.log(recordsCC);
 }
 
-function calculate() {
+function calculateUS() {
 	for (var key in recordsUS) {
 		var record = recordsUS[key];
 		
@@ -60,29 +80,8 @@ function stylePage() {
 	var saveArea = document.getElementById("saveArea");
 	var resultArea = document.getElementById("resultArea");
 
-	var diff = Math.trunc((beforePacer - afterPacer) * 100) / 100;
-	saveArea.innerHTML = diff;
-
+	addSavings(saveArea);
 	addUSTable(resultArea);
-}
-
-function downloadCSV() {
-	var csvArr = new Array();
-	csvArr.push(["", "Totals ->", "$" + afterPacer, "$" + beforePacer, "$" + (beforePacer - afterPacer)]);
-	csvArr.push(["Unique Signature", "Number of downloads", "Price", "Total", "Savings"]);
-	for (var key in recordsUS) {
-		var record = recordsUS[key];
-		var tot = record.count * record.cost;
-		csvArr.push([key, record.count, "$" + record.cost, "$" + tot, "$" + (tot - record.cost)]);
-	}
-
-	var csvContent = "data:text/csv;charset=utf-8,";
-	csvArr.forEach(function(infoArray, index){
-	   dataString = infoArray.join(",");
-	   csvContent += index < csvArr.length ? dataString + "\n" : dataString;
-	});
-	var encodedUri = encodeURI(csvContent);
-	window.open(encodedUri);
 }
 
 function fillUS(name, cost) {
@@ -124,6 +123,11 @@ function fillCC(record, name, cost) {
 	recordsCC[clientCode][name].count++;
 	recordsCC[clientCode][name].tot = recordsCC[clientCode][name].count * cost;
 	recordsCC[clientCode][name].save = recordsCC[clientCode][name].tot - cost;
+}
+
+function addSavings(saveArea) {
+	var diff = Math.trunc((beforePacer - afterPacer) * 100) / 100;
+	saveArea.innerHTML = diff;	
 }
 
 function addUSTable(resultArea) {
