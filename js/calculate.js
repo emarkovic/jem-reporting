@@ -17,7 +17,6 @@ function check() {
 
 		//json -> correctly formatted data
 		processData(JSON.parse(file));
-
 		//recordsUS has data now, good to use!
 		calculate();
 		stylePage();
@@ -37,14 +36,15 @@ function processData(file) {
 			var cost = parseFloat(record.Cost.substring(1));
 			var court = record.Court;
 			var search = record.Search;
-			var name = court + search + desc;	
+			var name = court + search + desc;
+			name = name.replace(/,/g,'')	
 
 			fillUS(name, cost);	
 			fillCC(record, name, cost);
 
 		}
 	}
-	console.log(recordsCC);
+	// console.log(recordsCC);
 }
 
 function calculate() {
@@ -60,19 +60,21 @@ function stylePage() {
 	var saveArea = document.getElementById("saveArea");
 	var resultArea = document.getElementById("resultArea");
 
-	var diff = Math.round((beforePacer - afterPacer) * 1000) / 1000;
+	var diff = Math.trunc((beforePacer - afterPacer) * 100) / 100;
 	saveArea.innerHTML = diff;
+
+	addUSTable(resultArea);
 }
 
 function downloadCSV() {
 	var csvArr = new Array();
+	csvArr.push(["", "Totals ->", "$" + afterPacer, "$" + beforePacer, "$" + (beforePacer - afterPacer)]);
 	csvArr.push(["Unique Signature", "Number of downloads", "Price", "Total", "Savings"]);
 	for (var key in recordsUS) {
 		var record = recordsUS[key];
 		var tot = record.count * record.cost;
 		csvArr.push([key, record.count, "$" + record.cost, "$" + tot, "$" + (tot - record.cost)]);
 	}
-	console.log(csvArr);
 
 	var csvContent = "data:text/csv;charset=utf-8,";
 	csvArr.forEach(function(infoArray, index){
@@ -124,3 +126,97 @@ function fillCC(record, name, cost) {
 	recordsCC[clientCode][name].save = recordsCC[clientCode][name].tot - cost;
 }
 
+function addUSTable(resultArea) {
+	var table = document.createElement("table");
+	table.classList.add("table");
+	table.classList.add("table-striped");
+	resultArea.appendChild(table);
+
+	var tHead = document.createElement("thead");
+	table.appendChild(tHead);
+	///////////////////////////////////////////////////
+	
+	var trH1 = document.createElement("tr");
+	tHead.appendChild(trH1);
+
+	var thUS = document.createElement("th");
+	thUS.innerHTML = "";
+	trH1.appendChild(thUS);
+
+	var thCount = document.createElement("th");
+	thCount.innerHTML = "Totals ->";
+	trH1.appendChild(thCount);
+
+	var thPrice = document.createElement("th");
+	thPrice.innerHTML = "$" + (Math.trunc(afterPacer * 100) / 100);
+	trH1.appendChild(thPrice);
+
+	var thTot = document.createElement("th");
+	thTot.innerHTML = "$" + (Math.trunc(beforePacer * 100) / 100);
+	trH1.appendChild(thTot);
+
+	var thSave = document.createElement("th");
+	thSave.innerHTML = "$" + (Math.trunc((beforePacer - afterPacer) * 100) / 100);
+	trH1.appendChild(thSave);
+
+	///////////////////////////////////////////////////
+	var trH2 = document.createElement("tr");
+	tHead.appendChild(trH2);
+
+	var thUS = document.createElement("th");
+	thUS.innerHTML = "Unique Signature";
+	trH2.appendChild(thUS);
+
+	var thCount = document.createElement("th");
+	thCount.innerHTML = "Number of Downloads";
+	trH2.appendChild(thCount);
+
+	var thPrice = document.createElement("th");
+	thPrice.innerHTML = "Price Per Page";
+	trH2.appendChild(thPrice);
+
+	var thTot = document.createElement("th");
+	thTot.innerHTML = "Total Cost";
+	trH2.appendChild(thTot);
+
+	var thSave = document.createElement("th");
+	thSave.innerHTML = "Savings";
+	trH2.appendChild(thSave);
+
+	var tBody = document.createElement("tbody");
+	table.appendChild(tBody);
+
+	for (var key in recordsUS) {
+		//each key is one record
+		var rec = recordsUS[key];
+		var trB = document.createElement("tr");
+		tBody.appendChild(trB);
+
+		//signature
+		var sig = document.createElement("th");
+		sig.innerHTML = key;
+		trB.appendChild(sig);
+
+		//count
+		var cnt = document.createElement("th");
+		cnt.innerHTML = rec.count;
+		trB.appendChild(cnt);
+
+		//price
+		var cost = document.createElement("th");
+		cost.innerHTML = "$" + rec.cost;
+		trB.appendChild(cost);
+
+		//tot
+		var tp = rec.cost * rec.count;
+		var tot = document.createElement("th");
+		tot.innerHTML = "$" + (Math.trunc(tp * 100) / 100);
+		trB.appendChild(tot);
+
+		//sav
+		var sv = tp - rec.cost;
+		var sav = document.createElement("th");
+		sav.innerHTML = "$" + (Math.trunc(sv * 100) / 100);
+		trB.appendChild(sav);
+	}
+}
