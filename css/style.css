@@ -1,0 +1,6 @@
+#top-link-block {
+    position: fixed; /* keeps it on the bottom once in view */
+    bottom: 18px; /* height of link element */
+    left: 10px; /* padding from the left side of the window */
+    
+}

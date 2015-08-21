@@ -4,6 +4,7 @@
 	<title>Pacer Billing Savings</title>
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -35,23 +36,52 @@
 	        <input type="submit" id="submit"/>
       	</div>
 
-<!--       	<div id="loading" style="display: none;">
-          <p style="padding-top: 10px;">Loading...</p>
-      		<img src="loading.gif" style="height: 100px; width: 100px;">
-      	</div>
- -->
       	<div id="done" style="display: none;">
-	        <h1>You could save $<span id="saveArea"></span></h1>
-          <button id="download">Download CSV</button>
+	        <h1>Results...<span id="saveArea"></span></h1>
+
           <br>
-	        <div id="resultArea" style="margin-top: 10px"></div> 
-      	</div>  
+
+
+          <div>            
+            <ul class="nav nav-tabs" role="tablist">
+              <li role="presentation" class="active"><a href="#uSig" aria-controls="uSig" role="tab" data-toggle="tab">Unique Signature</a></li>
+              <li role="presentation"><a href="#court" aria-controls="court" role="tab" data-toggle="tab">Court</a></li>
+            </ul>
 
             
+            <div class="tab-content">
+
+              <!-- U SIG -->
+              <div role="tabpanel" class="tab-pane active" id="uSig">
+                <br>
+                <button id="downloadSig" class="btn btn-default">Download CSV</button>
+                <br>
+              </div>
+
+              <!-- COURT -->
+              <div role="tabpanel" class="tab-pane" id="court">
+                <br>
+                <button id="downloadCourt" class="btn btn-default">Download CSV</button>          
+                <br>
+              </div>
+
+            </div>
+          </div>
+      	</div>     
       </div>
     </div>
-	
 
+  <span id="top-link-block" >
+      <a href="#top" class="well well-sm"  onclick="$('html,body').animate({scrollTop:0},'slow');return false;">
+          <i class="glyphicon glyphicon-chevron-up"></i> Back to Top
+      </a>
+  </span><!-- /top-link-block -->
+
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="js/calculate.js"></script>
 </body>
 </html>
